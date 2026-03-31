@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enfield Royal Clinic Dubai | VIP AI Patient Concierge</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'royal-navy':        '#002349',
+                        'royal-navy-light':  '#0a325e',
+                        'metallic-gold':     '#C5A059',
+                        'metallic-gold-hover':'#b08d4b',
+                        'royal-charcoal':    '#1A1A1A',
+                        'royal-charcoal-2':  '#242424',
+                        'royal-charcoal-3':  '#2e2e2e',
+                        'royal-gold':        '#D4AF37',
+                        'royal-gold-light':  '#f0d060',
+                    },
+                    fontFamily: {
+                        sans:    ['Inter', 'sans-serif'],
+                        serif:   ['Playfair Display', 'serif'],
+                        display: ['Montserrat', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased min-h-screen flex flex-col relative overflow-x-hidden">
+
+    <!-- Loading Overlay (Hidden initially) -->
+    <div id="loadingOverlay" class="fixed inset-0 z-50 flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-royal-navy/80 backdrop-blur-md"></div>
+        <div class="relative z-10 flex flex-col items-center justify-center p-8 w-11/12 max-w-sm rounded-2xl bg-white/10 border border-white/20 glass-panel shadow-2xl">
+            <div class="loader-circle mb-6">
+                <!-- SVG Loader spinner colored gold -->
+                <svg class="animate-spin h-12 w-12 text-metallic-gold" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            <p class="text-white text-center font-medium leading-relaxed tracking-wide text-lg" id="loadingText">Our AI is analyzing your requirements for priority scheduling...</p>
+        </div>
+    </div>
+
+    <!-- Success Overlay (Hidden initially) -->
+    <div id="successOverlay" class="fixed inset-0 z-50 flex-col items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="absolute inset-0 bg-royal-navy/90 backdrop-blur-md"></div>
+        <div class="relative z-10 flex flex-col items-center p-8 w-11/12 max-w-sm rounded-2xl bg-white/10 border border-metallic-gold/50 glass-panel shadow-2xl success-bounce">
+            <!-- Check Icon -->
+            <div class="w-16 h-16 rounded-full bg-metallic-gold/20 flex items-center justify-center mb-4 border border-metallic-gold">
+                <i class="fa-solid fa-check text-3xl text-metallic-gold"></i>
+            </div>
+            <h3 class="text-2xl font-bold text-white mb-1 tracking-tight text-center">High-Priority Status Assigned.</h3>
+            <p id="successSubtext" class="text-gray-300 text-center font-light leading-relaxed text-sm mb-5">A Senior Coordinator will contact you on WhatsApp within 3 minutes.</p>
+
+            <!-- ML Score Card -->
+            <div class="w-full rounded-xl bg-white/10 border border-white/20 p-4 mb-5">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold text-gray-300 uppercase tracking-widest">AI Priority Score</span>
+                    <span id="mlScoreBadge" class="text-xs font-bold px-2 py-0.5 rounded-full bg-metallic-gold/20 text-metallic-gold border border-metallic-gold/40">Computing...</span>
+                </div>
+                <!-- Score Bar -->
+                <div class="w-full h-2 bg-white/10 rounded-full overflow-hidden mb-2">
+                    <div id="mlScoreBar" class="h-2 rounded-full bg-gradient-to-r from-metallic-gold to-yellow-300 transition-all duration-1000" style="width:0%"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-gray-400 mb-3">
+                    <span>0.0</span><span>5.0</span><span>10.0</span>
+                </div>
+                <!-- ML Breakdown Rows -->
+                <div class="space-y-1.5" id="mlBreakdown">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-400">Procedure Weight</span>
+                        <span id="procedureWeight" class="text-white font-semibold">—</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-400">Urgency Multiplier</span>
+                        <span id="urgencyMultiplier" class="text-white font-semibold">—</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-400">Priority Tier</span>
+                        <span id="priorityTier" class="font-bold">—</span>
+                    </div>
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="text-gray-400">Est. Response Time</span>
+                        <span id="responseTime" class="text-white font-semibold">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <button onclick="window.location.reload()" class="w-full px-6 py-2.5 rounded-xl border border-metallic-gold text-metallic-gold hover:bg-metallic-gold hover:text-royal-navy transition-all uppercase tracking-wider text-sm font-semibold">Book Another Consultation</button>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="w-full bg-white shadow-sm border-b border-gray-100 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Logo area -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded bg-royal-navy flex items-center justify-center">
+                    <i class="fa-solid fa-crown text-metallic-gold text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-royal-navy text-lg leading-tight tracking-tight uppercase">Enfield Royal</h1>
+                    <span class="text-xs text-metallic-gold tracking-widest uppercase font-medium">Clinic Dubai</span>
+                </div>
+            </div>
+            <!-- Header actions -->
+            <div class="flex items-center gap-3">
+                <!-- My Account Button (dynamic state) -->
+                <button id="authBtn" onclick="openAuthModal()" class="flex items-center gap-2 px-4 py-2 rounded-full border border-royal-navy/20 text-royal-navy text-xs font-semibold hover:bg-royal-navy hover:text-white transition-all font-display">
+                    <i class="fa-solid fa-circle-user"></i>
+                    <span id="authBtnLabel">My Account</span>
+                </button>
+                <!-- VIP Button -->
+                <button class="bg-gradient-to-r from-metallic-gold to-[#e8c87b] text-royal-navy font-bold text-xs sm:text-sm px-4 sm:px-6 py-2.5 rounded-full shadow-lg shadow-metallic-gold/30 hover:shadow-xl hover:scale-105 transition-all transform flex items-center gap-2">
+                    <i class="fa-solid fa-gem hidden sm:inline-block"></i> VIP Priority Line
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ══════════════════════════════════════════════════════
+         AUTH MODAL (Login / Register)
+    ══════════════════════════════════════════════════════════ -->
+    <div id="authModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeAuthModal()"></div>
+        <div class="relative w-full max-w-md bg-royal-charcoal border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
+            <!-- Gold top accent -->
+            <div class="h-1 w-full bg-gradient-to-r from-royal-gold via-yellow-300 to-royal-gold"></div>
+
+            <div class="p-8">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="w-9 h-9 rounded bg-royal-navy flex items-center justify-center">
+                        <i class="fa-solid fa-crown text-metallic-gold"></i>
+                    </div>
+                    <div>
+                        <p class="font-bold text-white text-sm uppercase tracking-tight">Enfield Royal</p>
+                        <p class="text-royal-gold text-[10px] tracking-widest uppercase">Patient Portal</p>
+                    </div>
+                    <button onclick="closeAuthModal()" class="ml-auto text-gray-500 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Tabs -->
+                <div class="flex bg-white/5 rounded-xl p-1 mb-6">
+                    <button id="tabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2 text-sm font-semibold font-display rounded-lg transition-all text-white bg-royal-navy">Sign In</button>
+                    <button id="tabRegister" onclick="switchAuthTab('register')" class="flex-1 py-2 text-sm font-semibold font-display rounded-lg transition-all text-gray-400">Create Account</button>
+                </div>
+
+                <!-- Error/Success Message -->
+                <div id="authMessage" class="hidden mb-4 px-4 py-2.5 rounded-xl text-sm font-display font-medium"></div>
+
+                <!-- LOGIN FORM -->
+                <div id="loginForm">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-400 font-display uppercase tracking-wider mb-1 block">Email Address</label>
+                            <input id="loginEmail" type="email" placeholder="you@example.com"
+                                class="w-full bg-white/5 border border-white/10 focus:border-royal-gold rounded-xl px-4 py-3 text-white text-sm outline-none transition-all placeholder-gray-600 font-display">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 font-display uppercase tracking-wider mb-1 block">Password</label>
+                            <input id="loginPassword" type="password" placeholder="••••••••"
+                                class="w-full bg-white/5 border border-white/10 focus:border-royal-gold rounded-xl px-4 py-3 text-white text-sm outline-none transition-all placeholder-gray-600 font-display">
+                        </div>
+                    </div>
+                    <button onclick="handleLogin()" class="w-full mt-6 bg-gradient-to-r from-royal-gold to-yellow-400 text-royal-charcoal font-bold py-3.5 rounded-xl font-display text-sm uppercase tracking-wide hover:shadow-lg hover:shadow-royal-gold/30 transition-all">
+                        Sign In to My Account
+                    </button>
+                </div>
+
+                <!-- REGISTER FORM -->
+                <div id="registerForm" class="hidden">
+                    <div class="space-y-3">
+                        <div>
+                            <label class="text-xs text-gray-400 font-display uppercase tracking-wider mb-1 block">Full Name</label>
+                            <input id="regName" type="text" placeholder="Sarah Al Maktoum"
+                                class="w-full bg-white/5 border border-white/10 focus:border-royal-gold rounded-xl px-4 py-3 text-white text-sm outline-none transition-all placeholder-gray-600 font-display">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 font-display uppercase tracking-wider mb-1 block">Email Address</label>
+                            <input id="regEmail" type="email" placeholder="you@example.com"
+                                class="w-full bg-white/5 border border-white/10 focus:border-royal-gold rounded-xl px-4 py-3 text-white text-sm outline-none transition-all placeholder-gray-600 font-display">
+                        </div>
+                        <div>
+                            <label class="text-xs text-gray-400 font-display uppercase tracking-wider mb-1 block">Password</label>
+                            <input id="regPassword" type="password" placeholder="Min. 6 characters"
+                                class="w-full bg-white/5 border border-white/10 focus:border-royal-gold rounded-xl px-4 py-3 text-white text-sm outline-none transition-all placeholder-gray-600 font-display">
+                        </div>
+                    </div>
+                    <button onclick="handleRegister()" class="w-full mt-6 bg-gradient-to-r from-royal-gold to-yellow-400 text-royal-charcoal font-bold py-3.5 rounded-xl font-display text-sm uppercase tracking-wide hover:shadow-lg hover:shadow-royal-gold/30 transition-all">
+                        Create My VIP Account
+                    </button>
+                </div>
+
+                <p class="text-center text-gray-600 text-xs mt-4 font-display">Your data is encrypted and stored securely.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         PATIENT DASHBOARD MODAL
+    ══════════════════════════════════════════════════════════ -->
+    <div id="dashboardModal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4">
+        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="closeDashboard()"></div>
+        <div class="relative w-full max-w-2xl bg-royal-charcoal border border-white/10 rounded-3xl shadow-2xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="h-1 w-full bg-gradient-to-r from-royal-gold via-yellow-300 to-royal-gold flex-shrink-0"></div>
+
+            <!-- Dashboard Header -->
+            <div class="px-8 py-6 border-b border-white/10 flex items-center justify-between flex-shrink-0">
+                <div>
+                    <h2 class="font-serif text-2xl font-bold text-white">My <span class="italic text-royal-gold">Portal</span></h2>
+                    <p id="dashboardWelcome" class="text-gray-400 text-sm font-display mt-0.5"></p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="handleLogout()" class="text-xs text-gray-500 hover:text-red-400 transition-colors font-display px-3 py-1.5 rounded-lg border border-white/10 hover:border-red-900">
+                        <i class="fa-solid fa-right-from-bracket mr-1"></i> Sign Out
+                    </button>
+                    <button onclick="closeDashboard()" class="text-gray-500 hover:text-white transition-colors">
+                        <i class="fa-solid fa-xmark text-lg"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats Row -->
+            <div class="grid grid-cols-3 gap-px bg-white/5 flex-shrink-0">
+                <div class="bg-royal-charcoal px-6 py-4 text-center">
+                    <p id="statTotal" class="font-serif text-3xl font-bold text-royal-gold">0</p>
+                    <p class="text-gray-500 text-xs font-display uppercase tracking-wider mt-1">Consultations</p>
+                </div>
+                <div class="bg-royal-charcoal px-6 py-4 text-center">
+                    <p id="statAvgScore" class="font-serif text-3xl font-bold text-royal-gold">—</p>
+                    <p class="text-gray-500 text-xs font-display uppercase tracking-wider mt-1">Avg. AI Score</p>
+                </div>
+                <div class="bg-royal-charcoal px-6 py-4 text-center">
+                    <p id="statTier" class="font-serif text-3xl font-bold text-royal-gold">—</p>
+                    <p class="text-gray-500 text-xs font-display uppercase tracking-wider mt-1">Best Tier</p>
+                </div>
+            </div>
+
+            <!-- Booking History -->
+            <div class="overflow-y-auto flex-1 px-8 py-6">
+                <h3 class="text-xs text-gray-500 uppercase tracking-widest font-display mb-4">Booking History</h3>
+                <div id="bookingHistoryList" class="space-y-3">
+                    <!-- Populated by JS -->
+                </div>
+                <div id="emptyHistory" class="hidden text-center py-12">
+                    <i class="fa-solid fa-calendar-xmark text-4xl text-gray-700 mb-4 block"></i>
+                    <p class="text-gray-500 font-display text-sm">No bookings yet.</p>
+                    <p class="text-gray-600 font-display text-xs mt-1">Complete a consultation form to see your history here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col lg:flex-row max-w-7xl mx-auto w-full">
+        
+        <!-- Hero Section -->
+        <div class="w-full lg:w-1/2 p-6 lg:p-12 flex flex-col justify-center relative">
+            <div class="absolute top-0 right-0 w-64 h-64 bg-metallic-gold/10 rounded-full blur-3xl -z-10 transform translate-x-1/2 -translate-y-1/2"></div>
+            
+            <div class="inline-flex items-center gap-2 text-metallic-gold font-semibold text-sm tracking-widest uppercase mb-6 bg-metallic-gold/10 px-4 py-2 rounded-full w-max border border-metallic-gold/20">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-metallic-gold opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-metallic-gold"></span>
+                </span>
+                Smart Concierge AI
+            </div>
+
+            <h2 class="text-4xl lg:text-5xl font-bold text-royal-navy mb-6 leading-tight">
+                Your Premium Aesthetic Journey Starts <span class="bg-gradient-to-r from-metallic-gold to-yellow-600 bg-clip-text text-transparent">Intelligently.</span>
+            </h2>
+            
+            <p class="text-gray-600 text-lg mb-8 leading-relaxed font-light">
+                Experience world-class luxury at Dubai’s premier clinic. Complete our Smart Consultation below for immediate, tailored priority scheduling with our Senior Specialists.
+            </p>
+
+            <!-- Aesthetic Placeholders grid -->
+            <div class="grid grid-cols-2 gap-4 mt-4 relative z-0">
+                <div class="relative h-40 rounded-2xl overflow-hidden shadow-lg group">
+                    <img src="https://images.unsplash.com/photo-1629909613654-28e377c37b09?q=80&w=600&auto=format&fit=crop" alt="Premium Clinic Interior" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700 ease-in-out">
+                    <div class="absolute inset-0 bg-gradient-to-t from-royal-navy/80 to-transparent"></div>
+                    <p class="absolute bottom-3 left-4 text-white text-sm font-semibold tracking-wide">Luxury Facilities</p>
+                </div>
+                <div class="relative h-40 rounded-2xl overflow-hidden shadow-lg group">
+                    <img src="https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=600&auto=format&fit=crop" alt="Aesthetic Procedure" class="w-full h-full object-cover transform group-hover:scale-110 transition duration-700 ease-in-out">
+                    <div class="absolute inset-0 bg-gradient-to-t from-royal-navy/80 to-transparent"></div>
+                    <p class="absolute bottom-3 left-4 text-white text-sm font-semibold tracking-wide">Expert Procedures</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Section -->
+        <div class="w-full lg:w-1/2 p-6 lg:p-12 flex items-center justify-center z-10">
+            <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl shadow-royal-navy/5 border border-gray-100 overflow-hidden relative pb-6">
+                <!-- Top Progress Bar -->
+                <div class="w-full bg-gray-100 h-1.5">
+                    <div id="formProgress" class="h-1.5 bg-metallic-gold transition-all duration-500 w-1/3"></div>
+                </div>
+
+                <div class="px-8 pt-8 pb-4">
+                    <h3 class="text-2xl font-bold text-royal-navy tracking-tight">Smart Consultation</h3>
+                    <p class="text-sm text-gray-500 mt-2" id="stepIndicator">Step 1 of 3: Verification</p>
+                    <!-- Pre-selection Banner (shown when clicking a treatment card) -->
+                    <div id="procedureBanner" class="hidden mt-3 flex items-center justify-between bg-metallic-gold/10 border border-metallic-gold/40 rounded-xl px-4 py-2.5">
+                        <div class="flex items-center gap-2">
+                            <i class="fa-solid fa-lock text-metallic-gold text-xs"></i>
+                            <span class="text-xs font-semibold text-royal-navy">Pre-selected: </span>
+                            <span id="bannerProcedureName" class="text-xs font-bold text-metallic-gold"></span>
+                        </div>
+                        <button onclick="clearProcedurePreselect()" class="text-gray-400 hover:text-red-400 transition-colors text-xs" title="Clear">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative h-[280px] overflow-hidden w-full px-8" id="formContainer">
+                    
+                    <!-- Form Element Wrapping Steps -->
+                    <form id="leadForm" class="w-full h-full" onsubmit="event.preventDefault();">
+                        
+                        <!-- Step 1: Full Name -->
+                        <div id="step1" class="absolute w-full top-0 left-0 px-8 transition-all duration-500 transform translate-x-0 opacity-100">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Legal Full Name</label>
+                            <input type="text" id="fullName" placeholder="e.g. Sarah Al Maktoum" required
+                                class="w-full px-4 py-3.5 rounded-xl border border-gray-200 focus:border-metallic-gold focus:ring-2 focus:ring-metallic-gold/20 outline-none transition-all placeholder-gray-400 bg-gray-50 focus:bg-white text-gray-800 font-medium">
+                            <button type="button" onclick="nextStep(1)" class="w-full flex items-center justify-center gap-2 mt-8 bg-royal-navy hover:bg-royal-navy-light text-white py-3.5 rounded-xl font-semibold shadow-xl shadow-royal-navy/20 transition-all text-sm uppercase tracking-wide">
+                                Continue Verification <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </div>
+
+                        <!-- Step 2: WhatsApp Number -->
+                        <div id="step2" class="absolute w-full top-0 left-0 px-8 transition-all duration-500 transform translate-x-full opacity-0 pointer-events-none">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">WhatsApp Number</label>
+                            <div class="flex gap-2">
+                                <select id="countryCode" class="w-24 px-2 py-3.5 rounded-xl border border-gray-200 focus:border-metallic-gold focus:ring-2 focus:ring-metallic-gold/20 outline-none transition-all bg-gray-50 focus:bg-white text-gray-800 font-semibold appearance-none">
+                                    <option value="+971" selected>AE +971</option>
+                                    <option value="+966">SA +966</option>
+                                    <option value="+44">UK +44</option>
+                                    <option value="+1">US +1</option>
+                                    <option value="+91">IN +91</option>
+                                </select>
+                                <input type="tel" id="whatsappNumber" placeholder="50 123 4567" required
+                                    class="flex-1 px-4 py-3.5 rounded-xl border border-gray-200 focus:border-metallic-gold focus:ring-2 focus:ring-metallic-gold/20 outline-none transition-all placeholder-gray-400 bg-gray-50 focus:bg-white text-gray-800 font-medium">
+                            </div>
+                            <div class="flex gap-3 justify-end mt-8">
+                                <button type="button" onclick="prevStep(2)" class="px-5 py-3.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all font-medium">
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                </button>
+                                <button type="button" onclick="nextStep(2)" class="flex-1 flex items-center justify-center gap-2 bg-royal-navy hover:bg-royal-navy-light text-white py-3.5 rounded-xl font-semibold shadow-xl shadow-royal-navy/20 transition-all text-sm uppercase tracking-wide">
+                                    Continue <i class="fa-solid fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Service & Urgency -->
+                        <div id="step3" class="absolute w-full top-0 left-0 px-8 transition-all duration-500 transform translate-x-full opacity-0 pointer-events-none">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Service Interest</label>
+                            <div class="relative mb-4">
+                                <select id="procedure" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-metallic-gold focus:ring-2 focus:ring-metallic-gold/20 outline-none transition-all bg-gray-50 focus:bg-white text-gray-800 font-semibold appearance-none cursor-pointer">
+                                    <option value="" disabled selected>Select a Procedure</option>
+                                    <option value="Hair Transplant">Hair Transplant</option>
+                                    <option value="Rhinoplasty">Rhinoplasty</option>
+                                    <option value="Liposuction">Liposuction</option>
+                                    <option value="Fillers & Botox">Fillers & Botox</option>
+                                    <option value="Other">Other Aesthetic Procedure</option>
+                                </select>
+                                <i class="fa-solid fa-chevron-down absolute right-4 top-4 text-gray-400 pointer-events-none"></i>
+                            </div>
+
+                            <label class="block text-sm font-medium text-gray-700 mb-2">When do you want this?</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" onclick="selectUrgency('Immediate')" class="urgency-btn border border-gray-200 rounded-lg py-2.5 text-xs font-semibold text-gray-600 hover:border-metallic-gold hover:text-metallic-gold transition-all bg-gray-50">Immediate</button>
+                                <button type="button" onclick="selectUrgency('Within 1 Month')" class="urgency-btn border border-gray-200 rounded-lg py-2.5 text-xs font-semibold text-gray-600 hover:border-metallic-gold hover:text-metallic-gold transition-all bg-gray-50">1 Month</button>
+                                <button type="button" onclick="selectUrgency('Researching')" class="urgency-btn border border-gray-200 rounded-lg py-2.5 text-xs font-semibold text-gray-600 hover:border-metallic-gold hover:text-metallic-gold transition-all bg-gray-50">Research</button>
+                            </div>
+                            <input type="hidden" id="urgencyValue" value="">
+
+                            <!-- Live AI Score Preview -->
+                            <div id="liveScorePreview" class="mt-4 rounded-xl border border-gray-100 bg-gray-50 px-4 py-3 hidden">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs text-gray-500 font-medium">AI Priority Preview</span>
+                                    <span id="liveScoreValue" class="text-xs font-bold text-metallic-gold">—</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-gray-200 rounded-full mt-2 overflow-hidden">
+                                    <div id="liveScoreBar" class="h-1.5 rounded-full bg-gradient-to-r from-metallic-gold to-yellow-400 transition-all duration-700" style="width:0%"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex gap-3 justify-end mt-7">
+                                <button type="button" onclick="prevStep(3)" class="px-5 py-3.5 rounded-xl border border-gray-200 text-gray-500 hover:bg-gray-50 transition-all font-medium">
+                                    <i class="fa-solid fa-arrow-left"></i>
+                                </button>
+                                <button type="button" onclick="submitForm()" id="submitBtn" class="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-metallic-gold to-[#e8c87b] hover:from-[#b08d4b] hover:to-metallic-gold text-royal-navy py-3.5 rounded-xl font-bold shadow-lg shadow-metallic-gold/40 transition-all text-sm uppercase tracking-wide group disabled:opacity-50 disabled:cursor-not-allowed">
+                                    Secure Consultation <i class="fa-solid fa-lock group-hover:scale-110 transition-transform"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                    </form>
+                </div>
+                
+                <!-- Trust Badges -->
+                <div class="flex justify-center gap-4 mt-6 pt-4 border-t border-gray-100 opacity-60">
+                    <i class="fa-brands fa-whatsapp text-xl text-gray-400 hover:text-green-500 transition-colors cursor-pointer title" title="256-Bit Encrypted on WhatsApp"></i>
+                    <i class="fa-solid fa-shield-halved text-xl text-gray-400 hover:text-blue-500 transition-colors cursor-pointer" title="Data Protection Secured"></i>
+                    <i class="fa-solid fa-award text-xl text-gray-400 hover:text-metallic-gold transition-colors cursor-pointer" title="Dubai DHA Certified"></i>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="script.js"></script>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION: THE ART OF TRANSFORMATION (About Split)
+    ════════════════════════════════════════════════════════════ -->
+    <section class="bg-royal-charcoal py-24 px-6">
+        <div class="max-w-7xl mx-auto">
+            <!-- Section Label -->
+            <div class="flex items-center gap-3 mb-16">
+                <div class="h-px w-12 bg-royal-gold"></div>
+                <span class="text-royal-gold font-display text-xs tracking-[0.3em] uppercase font-semibold">Our Philosophy</span>
+            </div>
+
+            <!-- Split Layout -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                <!-- Left: Large Serif Heading -->
+                <div>
+                    <h2 class="font-serif text-5xl lg:text-6xl xl:text-7xl font-bold text-white leading-tight">
+                        The Art of
+                        <span class="block italic text-royal-gold">Transformation.</span>
+                    </h2>
+                    <div class="mt-8 w-20 h-0.5 bg-royal-gold"></div>
+                    <p class="mt-8 text-gray-400 font-display text-sm leading-relaxed tracking-[0.05em]">
+                        Enfield Royal Clinic Dubai
+                    </p>
+                </div>
+
+                <!-- Right: Body Copy -->
+                <div class="space-y-6">
+                    <p class="text-gray-300 font-display text-lg leading-[1.9] tracking-wide font-light">
+                        Are you looking for a stunning makeover — from head to toe? At Enfield Royal Clinic, we believe that true beauty is a journey, not a destination.
+                    </p>
+                    <p class="text-gray-400 font-display text-base leading-[1.9] tracking-wide font-light">
+                        Our world-class specialists combine cutting-edge technology with an artisan's precision — crafting personalised treatment plans that honour your individuality. Whether it is a refined rhinoplasty, a sculpted silhouette, or skin that radiates health, every procedure is executed with surgical excellence and compassionate care.
+                    </p>
+                    <p class="text-gray-400 font-display text-base leading-[1.9] tracking-wide font-light">
+                        Step into a space where luxury and medicine converge — and leave as the finest version of yourself.
+                    </p>
+                    <div class="pt-4">
+                        <a href="#consultation" class="inline-flex items-center gap-3 text-royal-gold font-display text-sm font-semibold tracking-widest uppercase border-b border-royal-gold/40 pb-1 hover:border-royal-gold transition-all">
+                            Begin Your Journey <span class="text-lg">&rarr;</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION: WHY CHOOSE US — Premium Card Grid + Counter
+    ════════════════════════════════════════════════════════════ -->
+    <section class="bg-royal-charcoal-2 py-24 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto">
+            <!-- Section Label -->
+            <div class="flex items-center gap-3 mb-4">
+                <div class="h-px w-12 bg-royal-gold"></div>
+                <span class="text-royal-gold font-display text-xs tracking-[0.3em] uppercase font-semibold">Our Promise</span>
+            </div>
+            <h2 class="font-serif text-4xl lg:text-5xl font-bold text-white mb-16">
+                Why Choose <span class="italic text-royal-gold">Enfield Royal</span>
+            </h2>
+
+            <!-- 4 Premium Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-20">
+
+                <!-- Card 1: Elite Specialists -->
+                <div class="group relative bg-royal-charcoal rounded-2xl p-8 border border-royal-gold/20 hover:border-royal-gold/70 transition-all duration-500 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-royal-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="w-14 h-14 rounded-xl bg-royal-gold/10 border border-royal-gold/30 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-medal text-royal-gold text-xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-semibold text-white mb-3">Elite Specialists</h3>
+                    <p class="text-gray-400 font-display text-sm leading-relaxed font-light tracking-wide">
+                        Board-certified surgeons with international accreditations and decades of combined expertise in aesthetic medicine.
+                    </p>
+                </div>
+
+                <!-- Card 2: Honest Collaboration -->
+                <div class="group relative bg-royal-charcoal rounded-2xl p-8 border border-royal-gold/20 hover:border-royal-gold/70 transition-all duration-500 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-royal-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="w-14 h-14 rounded-xl bg-royal-gold/10 border border-royal-gold/30 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-handshake text-royal-gold text-xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-semibold text-white mb-3">Honest Collaboration</h3>
+                    <p class="text-gray-400 font-display text-sm leading-relaxed font-light tracking-wide">
+                        We build genuine partnerships with our patients — transparent consultations, realistic expectations, and zero pressure.
+                    </p>
+                </div>
+
+                <!-- Card 3: State-of-the-Art Tech -->
+                <div class="group relative bg-royal-charcoal rounded-2xl p-8 border border-royal-gold/20 hover:border-royal-gold/70 transition-all duration-500 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-royal-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="w-14 h-14 rounded-xl bg-royal-gold/10 border border-royal-gold/30 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-microchip text-royal-gold text-xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-semibold text-white mb-3">State-of-the-Art Tech</h3>
+                    <p class="text-gray-400 font-display text-sm leading-relaxed font-light tracking-wide">
+                        From AI-powered diagnostics to the latest laser and robotic-assisted procedures — we invest in the best tools for your results.
+                    </p>
+                </div>
+
+                <!-- Card 4: Safety First -->
+                <div class="group relative bg-royal-charcoal rounded-2xl p-8 border border-royal-gold/20 hover:border-royal-gold/70 transition-all duration-500 overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-royal-gold/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="w-14 h-14 rounded-xl bg-royal-gold/10 border border-royal-gold/30 flex items-center justify-center mb-6">
+                        <i class="fa-solid fa-shield-halved text-royal-gold text-xl"></i>
+                    </div>
+                    <h3 class="font-serif text-xl font-semibold text-white mb-3">Safety First</h3>
+                    <p class="text-gray-400 font-display text-sm leading-relaxed font-light tracking-wide">
+                        DHA-licensed and internationally accredited. Every procedure follows the strictest clinical safety protocols in the UAE.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Trust Counter Belt -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-px bg-white/10 rounded-2xl overflow-hidden border border-white/10">
+                <div class="bg-royal-charcoal py-10 px-6 text-center">
+                    <div class="font-serif text-5xl font-bold text-royal-gold mb-2">
+                        <span class="counter" data-target="6000" data-suffix="+">0</span>
+                    </div>
+                    <p class="text-gray-400 font-display text-xs tracking-widest uppercase">Happy Patients</p>
+                </div>
+                <div class="bg-royal-charcoal py-10 px-6 text-center">
+                    <div class="font-serif text-5xl font-bold text-royal-gold mb-2">
+                        <span class="counter" data-target="98" data-suffix="%">0</span>
+                    </div>
+                    <p class="text-gray-400 font-display text-xs tracking-widest uppercase">Satisfaction Rate</p>
+                </div>
+                <div class="bg-royal-charcoal py-10 px-6 text-center">
+                    <div class="font-serif text-5xl font-bold text-royal-gold mb-2">
+                        <span class="counter" data-target="15" data-suffix="+">0</span>
+                    </div>
+                    <p class="text-gray-400 font-display text-xs tracking-widest uppercase">Years of Excellence</p>
+                </div>
+                <div class="bg-royal-charcoal py-10 px-6 text-center">
+                    <div class="font-serif text-5xl font-bold text-royal-gold mb-2">
+                        <span class="counter" data-target="40" data-suffix="+">0</span>
+                    </div>
+                    <p class="text-gray-400 font-display text-xs tracking-widest uppercase">Expert Specialists</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         SECTION: TREATMENTS — Category Filter
+    ════════════════════════════════════════════════════════════ -->
+    <section class="bg-royal-charcoal py-24 px-6 border-t border-white/5">
+        <div class="max-w-7xl mx-auto">
+            <!-- Label -->
+            <div class="flex items-center gap-3 mb-4">
+                <div class="h-px w-12 bg-royal-gold"></div>
+                <span class="text-royal-gold font-display text-xs tracking-[0.3em] uppercase font-semibold">Procedures</span>
+            </div>
+            <h2 class="font-serif text-4xl lg:text-5xl font-bold text-white mb-12">
+                Our <span class="italic text-royal-gold">Treatments</span>
+            </h2>
+
+            <!-- Category Filter Tabs -->
+            <div class="flex flex-wrap gap-3 mb-10" id="treatmentFilters">
+                <button onclick="filterTreatments('all')" data-filter="all" class="filter-btn active-filter font-display text-sm font-semibold px-6 py-2.5 rounded-full border border-royal-gold text-royal-gold bg-royal-gold/10 tracking-wider uppercase transition-all">
+                    All
+                </button>
+                <button onclick="filterTreatments('facial')" data-filter="facial" class="filter-btn font-display text-sm font-semibold px-6 py-2.5 rounded-full border border-white/20 text-gray-400 hover:border-royal-gold/50 hover:text-royal-gold tracking-wider uppercase transition-all">
+                    Facial
+                </button>
+                <button onclick="filterTreatments('body')" data-filter="body" class="filter-btn font-display text-sm font-semibold px-6 py-2.5 rounded-full border border-white/20 text-gray-400 hover:border-royal-gold/50 hover:text-royal-gold tracking-wider uppercase transition-all">
+                    Body
+                </button>
+                <button onclick="filterTreatments('skin')" data-filter="skin" class="filter-btn font-display text-sm font-semibold px-6 py-2.5 rounded-full border border-white/20 text-gray-400 hover:border-royal-gold/50 hover:text-royal-gold tracking-wider uppercase transition-all">
+                    Skin
+                </button>
+                <button onclick="filterTreatments('hair')" data-filter="hair" class="filter-btn font-display text-sm font-semibold px-6 py-2.5 rounded-full border border-white/20 text-gray-400 hover:border-royal-gold/50 hover:text-royal-gold tracking-wider uppercase transition-all">
+                    Hair
+                </button>
+            </div>
+
+            <!-- Treatment Cards Grid -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="treatmentGrid">
+
+                <!-- FACIAL -->
+                <div class="treatment-card" data-category="facial">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-user text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Rhinoplasty</h4>
+                        <p class="text-gray-500 text-xs font-display">Nose Reshaping</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="facial">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-face-smile text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Facelift</h4>
+                        <p class="text-gray-500 text-xs font-display">Facial Rejuvenation</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="facial">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-eye text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Eyelid Surgery</h4>
+                        <p class="text-gray-500 text-xs font-display">Blepharoplasty</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="facial">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-lips text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Lip Surgery</h4>
+                        <p class="text-gray-500 text-xs font-display">Augmentation & Lift</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="facial">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-head-side text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Chin Augmentation</h4>
+                        <p class="text-gray-500 text-xs font-display">Jawline Sculpting</p>
+                    </div>
+                </div>
+
+                <!-- BODY -->
+                <div class="treatment-card" data-category="body">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-person text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Liposuction</h4>
+                        <p class="text-gray-500 text-xs font-display">Body Contouring</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="body">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-circle-dot text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Tummy Tuck</h4>
+                        <p class="text-gray-500 text-xs font-display">Abdominoplasty</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="body">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-star text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Brazilian Butt Lift</h4>
+                        <p class="text-gray-500 text-xs font-display">BBL Sculpting</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="body">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-venus text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Breast Augmentation</h4>
+                        <p class="text-gray-500 text-xs font-display">Implants & Lift</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="body">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-dumbbell text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Body Contouring</h4>
+                        <p class="text-gray-500 text-xs font-display">Total Sculpting</p>
+                    </div>
+                </div>
+
+                <!-- SKIN -->
+                <div class="treatment-card" data-category="skin">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-sparkles text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Laser Resurfacing</h4>
+                        <p class="text-gray-500 text-xs font-display">Skin Renewal</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="skin">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-droplet text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Chemical Peels</h4>
+                        <p class="text-gray-500 text-xs font-display">Deep Exfoliation</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="skin">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-syringe text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Botox & Fillers</h4>
+                        <p class="text-gray-500 text-xs font-display">Injectables</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="skin">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-circle-dot text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Microneedling</h4>
+                        <p class="text-gray-500 text-xs font-display">Collagen Induction</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="skin">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-vial text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">PRP Therapy</h4>
+                        <p class="text-gray-500 text-xs font-display">Platelet Treatment</p>
+                    </div>
+                </div>
+
+                <!-- HAIR -->
+                <div class="treatment-card" data-category="hair">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-crown text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Hair Transplant</h4>
+                        <p class="text-gray-500 text-xs font-display">FUE / DHI Method</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="hair">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-seedling text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">PRP for Hair</h4>
+                        <p class="text-gray-500 text-xs font-display">Hair Restoration</p>
+                    </div>
+                </div>
+                <div class="treatment-card" data-category="hair">
+                    <div class="group bg-royal-charcoal-2 border border-white/10 hover:border-royal-gold/50 rounded-2xl p-5 text-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-royal-gold/10">
+                        <div class="w-10 h-10 rounded-full bg-royal-gold/10 flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-eye text-royal-gold text-sm"></i>
+                        </div>
+                        <h4 class="text-white font-display text-sm font-semibold mb-1">Eyebrow Transplant</h4>
+                        <p class="text-gray-500 text-xs font-display">Brow Restoration</p>
+                    </div>
+                </div>
+
+            </div><!-- end grid -->
+        </div>
+
+        <!-- Footer Bottom Strip -->
+        <div class="max-w-7xl mx-auto mt-24 pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded bg-royal-navy flex items-center justify-center">
+                    <i class="fa-solid fa-crown text-metallic-gold text-sm"></i>
+                </div>
+                <span class="font-display text-gray-400 text-sm tracking-widest uppercase">Enfield Royal Clinic Dubai</span>
+            </div>
+            <p class="text-gray-600 font-display text-xs tracking-wide">© 2025 Enfield Royal. All rights reserved. DHA Licensed.</p>
+        </div>
+    </section>
+
+</body>
+</html>
