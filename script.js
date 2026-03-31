@@ -651,7 +651,7 @@ async function submitForm() {
   // NOTE: no-cors POST strips the request body before reaching Google Apps Script.
   // Using GET + URL query params is the only reliable method from file:// pages.
   // Your GAS script reads these via e.parameter.Name, e.parameter.WhatsApp, etc.
-  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbwAFsci31hwev2mKJYjg3JcG5M3etQoQGkqsLPx04Au1QAEYKfaM3cXoWDq2_vQMfou/exec';
+  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxo4NOyu9dbAL1xiM4_JuEF6EwleTMuRFZxpcz9x7UjJjoVKXJR1gDYBff5wq6znnfD/exec';
 
   const sheetsPayload = {
     Name:         payload.fullName,
