@@ -344,16 +344,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function bookTreatment(procedureName) {
-  // 1. Pre-select the procedure in the dropdown
   const sel = document.getElementById('procedure');
   if (sel) {
+    const search = procedureName.toLowerCase().trim();
     for (const opt of sel.options) {
-      if (opt.value === procedureName || opt.text.startsWith(procedureName)) {
+      if (opt.value.toLowerCase().includes(search) || search.includes(opt.value.toLowerCase())) {
         opt.selected = true;
         break;
       }
     }
-    sel.dispatchEvent(new Event('change')); // trigger live preview if on step 3
+    sel.dispatchEvent(new Event('change'));
   }
 
   // 2. Show the gold pre-selection banner
@@ -365,24 +365,29 @@ function bookTreatment(procedureName) {
     banner.classList.add('flex');
   }
 
-  // 3. Reset form to Step 1 so user enters Name → Phone → just picks Urgency
+  // 3. Reset form
   if (currentStep !== 1) {
-    // Collapse current step back to start
-    [step1, step2, step3].forEach(s => {
-      s.classList.add('translate-x-full', 'opacity-0', 'pointer-events-none');
-      s.classList.remove('translate-x-0', '-translate-x-full', 'opacity-100');
+    const s1 = document.getElementById('step1');
+    const s2 = document.getElementById('step2');
+    const s3 = document.getElementById('step3');
+    [s1, s2, s3].forEach(s => {
+      s?.classList.add('translate-x-full', 'opacity-0', 'pointer-events-none');
+      s?.classList.remove('translate-x-0', '-translate-x-full', 'opacity-100');
     });
-    slideIn(step1);
+    if (s1) {
+      s1.classList.remove('translate-x-full', 'opacity-0', 'pointer-events-none');
+      s1.classList.add('translate-x-0', 'opacity-100');
+    }
     currentStep = 1;
     updateProgress(1);
   }
 
-  // 4. Smooth scroll up to the consultation form
-  const formSection = document.getElementById('leadForm');
-  if (formSection) {
-    formSection.closest('.bg-white')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  } else {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  // 4. Scroll
+  const formBox = document.getElementById('leadForm')?.closest('.bg-white');
+  if (formBox) {
+    formBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    formBox.classList.add('ring-4', 'ring-royal-gold/10');
+    setTimeout(() => formBox.classList.remove('ring-4', 'ring-royal-gold/10'), 2000);
   }
 }
 
