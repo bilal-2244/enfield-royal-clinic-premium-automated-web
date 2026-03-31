@@ -648,7 +648,7 @@ async function submitForm() {
   saveBookingToPortal(payload);
 
   // ── GOOGLE SHEETS LIVE INTEGRATION ──────────────────────────
-  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbxo4NOyu9dbAL1xiM4_JuEF6EwleTMuRFZxpcz9x7UjJjoVKXJR1gDYBff5wq6znnfD/exec';
+  const GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzf_xO40wldw8wGbxFH3zRnZXZ3IDOV7lhR-VHjFysv-4Qi7fRl6uSIJb4N_VqCFNoo/exec';
 
   const sheetsPayload = {
     Name:         payload.fullName,
